@@ -34,7 +34,7 @@ jobs:
       # dazu Galerie-Upload, Seiten-Scan, Löser und 3D-Animation.
       # Chrome ist auf dem Runner vorinstalliert.
       - run: npm run test:e2e -- '' e2e-screenshots
-      - uses: actions/upload-artifact@v6
+      - uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: e2e-screenshots
