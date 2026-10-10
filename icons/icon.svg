@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img"><title>Würfel-Löser</title>
 <rect width="512" height="512" rx="112" fill="#14161a"/>
 <polygon fill="#0b0c0e" stroke="#0b0c0e" stroke-width="18" stroke-linejoin="round" points="256.0,64.0 434.0,166.0 434.0,378.0 256.0,480.0 78.0,378.0 78.0,166.0"/>
 <polygon fill="#ffd500" stroke="#ffd500" stroke-width="5" stroke-linejoin="round" points="256.0,68.8 307.0,98.0 256.0,127.2 205.0,98.0"/>

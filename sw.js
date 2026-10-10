@@ -2,14 +2,32 @@
 // serves when offline.
 const CACHE = 'rubik';
 const SHELL = [
-  './', 'index.html', 'style.css', 'manifest.webmanifest', 'worker.js',
-  'js/app.js', 'js/cube.js', 'js/color.js', 'js/view3d.js', 'js/snap.js', 'js/detect.js', 'js/detect-worker.js',
-  'vendor/cubejs/cube.js', 'vendor/cubejs/solve.js',
-  'icons/icon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png',
+  './',
+  'index.html',
+  'style.css',
+  'manifest.webmanifest',
+  'worker.js',
+  'js/app.js',
+  'js/cube.js',
+  'js/color.js',
+  'js/view3d.js',
+  'js/snap.js',
+  'js/detect.js',
+  'js/detect-worker.js',
+  'vendor/cubejs/cube.js',
+  'vendor/cubejs/solve.js',
+  'icons/icon.svg',
+  'icons/icon-192.png',
+  'icons/apple-touch-icon.png',
 ];
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches
+      .open(CACHE)
+      .then((c) => c.addAll(SHELL))
+      .then(() => self.skipWaiting()),
+  );
 });
 
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));

@@ -1,8 +1,30 @@
 {
   "name": "rubik",
+  "version": "1.0.0",
+  "description": "Rubik's Cube fotografieren und Zug für Zug lösen: Erkennung aus zwei Fotos, Kociemba-Löser, 3D-Anleitung, als installierbare Web-App",
+  "homepage": "https://michaelkrisper.github.io/rubik/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/michaelkrisper/rubik.git"
+  },
+  "bugs": "https://github.com/michaelkrisper/rubik/issues",
+  "author": "Michael Krisper",
+  "license": "MIT",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "test": "node --test test/*.test.js"
+    "serve": "python3 -m http.server 8080",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "test": "node --test test/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage --test-coverage-include='js/cube.js' --test-coverage-include='js/color.js' --test-coverage-include='js/detect.js' --test-coverage-lines=90 --test-coverage-functions=90 --test-coverage-branches=80 test/*.test.js",
+    "test:e2e": "node scripts/e2e.mjs",
+    "check": "npm run lint && npm test"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15"
   }
 }

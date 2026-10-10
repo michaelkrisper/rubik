@@ -23,17 +23,17 @@
       <h1>Würfel-Löser</h1>
       <p class="lead">Zwei Fotos von schräg genügen: einmal mit Weiß oben, einmal umgedreht. Die App erkennt den Würfel selbst und zeigt dir Zug für Zug, wie du ihn löst – meist in rund 20 Zügen.</p>
       <div class="stack">
-        <button class="btn primary big" data-go="snap">Würfel fotografieren</button>
-        <button class="btn" data-go="scan">Seite für Seite scannen</button>
-        <button class="btn" data-go="manual">Farben von Hand eingeben</button>
-        <button class="btn" id="resume" hidden>Letzte Lösung fortsetzen</button>
+        <button type="button" class="btn primary big" data-go="snap">Würfel fotografieren</button>
+        <button type="button" class="btn" data-go="scan">Seite für Seite scannen</button>
+        <button type="button" class="btn" data-go="manual">Farben von Hand eingeben</button>
+        <button type="button" class="btn" id="resume" hidden>Letzte Lösung fortsetzen</button>
       </div>
       <p class="small">Läuft komplett auf deinem Gerät, nichts wird hochgeladen. Tipp: zum Home-Bildschirm hinzufügen, dann funktioniert die App auch offline.</p>
     </section>
 
     <section id="snap" hidden>
       <header class="bar">
-        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <button type="button" class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
         <span id="snap-title">Foto 1 von 2</span>
         <span></span>
       </header>
@@ -49,8 +49,8 @@
         <p class="cam-msg" id="snap-msg" hidden></p>
       </div>
       <div class="row">
-        <button class="btn" id="snap-redo" hidden>Von vorn</button>
-        <button class="btn primary big" id="snap-shoot">Aufnehmen</button>
+        <button type="button" class="btn" id="snap-redo" hidden>Von vorn</button>
+        <button type="button" class="btn primary big" id="snap-shoot">Aufnehmen</button>
         <label class="btn">Foto<input type="file" accept="image/*" id="snap-file" hidden></label>
       </div>
       <div class="thumbs" id="snap-thumbs"></div>
@@ -59,7 +59,7 @@
 
     <section id="scan" hidden>
       <header class="bar">
-        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <button type="button" class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
         <span id="scan-title">Seite 1 von 6</span>
         <span class="dots" id="scan-dots"></span>
       </header>
@@ -74,8 +74,8 @@
         <p class="cam-msg" id="cam-msg" hidden></p>
       </div>
       <div class="row">
-        <button class="btn" id="scan-back">Vorige Seite</button>
-        <button class="btn primary big shoot" id="shoot">Aufnehmen</button>
+        <button type="button" class="btn" id="scan-back">Vorige Seite</button>
+        <button type="button" class="btn primary big shoot" id="shoot">Aufnehmen</button>
         <label class="btn">Foto<input type="file" accept="image/*" id="file" hidden></label>
       </div>
       <p class="small center">Würfel in das Raster legen, so dass es die Seite genau ausfüllt. Gleichmäßiges Licht, keine Spiegelungen.</p>
@@ -83,7 +83,7 @@
 
     <section id="review" hidden>
       <header class="bar">
-        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <button type="button" class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
         <span>Farben prüfen</span>
         <span></span>
       </header>
@@ -92,14 +92,14 @@
       <div class="palette" id="palette"></div>
       <p class="msg" id="review-msg" hidden></p>
       <div class="row">
-        <button class="btn" data-go="again">Neu erfassen</button>
-        <button class="btn primary big" id="solve-btn">Lösung berechnen</button>
+        <button type="button" class="btn" data-go="again">Neu erfassen</button>
+        <button type="button" class="btn primary big" id="solve-btn">Lösung berechnen</button>
       </div>
     </section>
 
     <section id="solve" hidden>
       <header class="bar">
-        <button class="icon" data-go="review" aria-label="Zurück">&#x2039;</button>
+        <button type="button" class="icon" data-go="review" aria-label="Zurück">&#x2039;</button>
         <span id="solve-title">Lösung</span>
         <span></span>
       </header>
@@ -110,10 +110,10 @@
         <div class="desc" id="now-desc"></div>
       </div>
       <div class="controls">
-        <button class="btn icon-btn" id="first" aria-label="Zum Anfang">&#x23EE;&#xFE0E;</button>
-        <button class="btn icon-btn" id="prev" aria-label="Zug zurück">&#x25C0;&#xFE0E;</button>
-        <button class="btn primary big" id="next">Zug machen</button>
-        <button class="btn icon-btn" id="play" aria-label="Abspielen">&#x25B6;&#xFE0E;</button>
+        <button type="button" class="btn icon-btn" id="first" aria-label="Zum Anfang">&#x23EE;&#xFE0E;</button>
+        <button type="button" class="btn icon-btn" id="prev" aria-label="Zug zurück">&#x25C0;&#xFE0E;</button>
+        <button type="button" class="btn primary big" id="next">Zug machen</button>
+        <button type="button" class="btn icon-btn" id="play" aria-label="Abspielen">&#x25B6;&#xFE0E;</button>
       </div>
       <ol class="moves" id="moves"></ol>
       <details class="notation">

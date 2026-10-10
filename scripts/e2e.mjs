@@ -5,29 +5,65 @@
  *   the photo picker; the recognised cube must equal the scramble.
  * - face-by-face mode: a synthetic photo of every face through the picker,
  *   then solve and check that the solution really solves the scramble.
- * Saves screenshots.
+ * Saves screenshots. Without a URL it serves the repository itself.
  *
- *   python3 -m http.server 8791 &   # from the repo root
- *   node scripts/e2e.mjs [http://localhost:8791/] [outdir]
+ *   node scripts/e2e.mjs [url] [outdir]
+ *   CHROME=chromium node scripts/e2e.mjs
  */
 import { spawn } from 'node:child_process';
-import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { extname, join, normalize } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { scenario } from '../test/render.js';
 
-const base = process.argv[2] ?? 'http://localhost:8791/';
-const out = process.argv[3] ?? join(tmpdir(), 'rubik-shots');
+const root = fileURLToPath(new URL('..', import.meta.url));
+const TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.mjs': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json',
+  '.webmanifest': 'application/manifest+json',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
+};
+
+// Minimal static server for the repository (no directory listings).
+function serve() {
+  const server = createServer((req, res) => {
+    let path = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname));
+    if (path.endsWith('/')) path += 'index.html';
+    try {
+      const body = readFileSync(join(root, path));
+      res.writeHead(200, { 'content-type': TYPES[extname(path)] ?? 'application/octet-stream' });
+      res.end(body);
+    } catch {
+      res.writeHead(404).end();
+    }
+  });
+  return new Promise((resolve) => server.listen(0, '127.0.0.1', () => resolve(server)));
+}
+
+const server = process.argv[2] ? null : await serve();
+const base = process.argv[2] || `http://127.0.0.1:${server.address().port}/`;
+const out = process.argv[3] || join(tmpdir(), 'rubik-shots');
 mkdirSync(out, { recursive: true });
 const port = 9334;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Camera frames for Chrome's fake device (YUV 4:2:0, full-range BT.601).
 function y4m({ width: W, height: H, data }) {
-  const y = Buffer.alloc(W * H), u = Buffer.alloc((W / 2) * (H / 2)), v = Buffer.alloc((W / 2) * (H / 2));
+  const y = Buffer.alloc(W * H),
+    u = Buffer.alloc((W / 2) * (H / 2)),
+    v = Buffer.alloc((W / 2) * (H / 2));
   for (let j = 0; j < H; j++) {
     for (let i = 0; i < W; i++) {
-      const k = (j * W + i) * 4, r = data[k], g = data[k + 1], b = data[k + 2];
+      const k = (j * W + i) * 4,
+        r = data[k],
+        g = data[k + 1],
+        b = data[k + 2];
       y[j * W + i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
       if (i % 2 === 0 && j % 2 === 0) {
         const c = (j / 2) * (W / 2) + i / 2;
@@ -53,8 +89,11 @@ function bmp({ width: W, height: H, data }) {
   buf.writeUInt16LE(24, 28);
   for (let j = 0; j < H; j++) {
     for (let i = 0; i < W; i++) {
-      const k = (j * W + i) * 4, o = 54 + j * row + i * 3;
-      buf[o] = data[k + 2]; buf[o + 1] = data[k + 1]; buf[o + 2] = data[k];
+      const k = (j * W + i) * 4,
+        o = 54 + j * row + i * 3;
+      buf[o] = data[k + 2];
+      buf[o + 1] = data[k + 1];
+      buf[o + 2] = data[k];
     }
   }
   return buf;
@@ -65,16 +104,26 @@ const camFile = join(out, 'camera.y4m');
 writeFileSync(camFile, y4m(snapCase.imgs[0]));
 const photo2 = bmp(snapCase.imgs[1]).toString('base64');
 
-const chrome = spawn('google-chrome', [
-  '--headless=new', '--no-sandbox', '--disable-gpu',
-  '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
-  `--use-file-for-fake-video-capture=${camFile}`,
-  `--remote-debugging-port=${port}`,
-  `--user-data-dir=${mkdtempSync(join(tmpdir(), 'rubik-chrome-'))}`,
-  '--window-size=412,915', 'about:blank',
-], { stdio: 'ignore' });
+const profile = mkdtempSync(join(tmpdir(), 'rubik-chrome-'));
+const chrome = spawn(
+  process.env.CHROME ?? 'google-chrome',
+  [
+    '--headless=new',
+    '--no-sandbox',
+    '--disable-gpu',
+    '--use-fake-ui-for-media-stream',
+    '--use-fake-device-for-media-stream',
+    `--use-file-for-fake-video-capture=${camFile}`,
+    `--remote-debugging-port=${port}`,
+    `--user-data-dir=${profile}`,
+    '--window-size=412,915',
+    'about:blank',
+  ],
+  { stdio: 'ignore' },
+);
 
-let ws, msgId = 0;
+let ws,
+  msgId = 0;
 const pending = new Map();
 const errors = [];
 function send(method, params = {}) {
@@ -86,7 +135,8 @@ function send(method, params = {}) {
 }
 async function evaluate(expr) {
   const r = await send('Runtime.evaluate', { expression: expr, returnByValue: true, awaitPromise: true });
-  if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
+  if (r.exceptionDetails)
+    throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
   return r.result.value;
 }
 async function shot(name) {
@@ -98,7 +148,9 @@ try {
   let target;
   for (let i = 0; i < 50 && !target; i++) {
     await wait(200);
-    target = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' }).then((r) => r.json()).catch(() => null);
+    target = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })
+      .then((r) => r.json())
+      .catch(() => null);
   }
   ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((r) => ws.addEventListener('open', r));
@@ -109,11 +161,22 @@ try {
       pending.delete(m.id);
     }
     if (m.method === 'Runtime.exceptionThrown') errors.push(m.params.exceptionDetails.exception?.description);
-    if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') errors.push(m.params.args.map((a) => a.value).join(' '));
+    // a native dialog would silently answer "no" in headless Chrome
+    if (m.method === 'Page.javascriptDialogOpening') {
+      errors.push(`dialog: ${m.params.message}`);
+      send('Page.handleJavaScriptDialog', { accept: true });
+    }
+    if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error')
+      errors.push(m.params.args.map((a) => a.value).join(' '));
   });
   await send('Runtime.enable');
   await send('Page.enable');
-  await send('Emulation.setDeviceMetricsOverride', { width: 412, height: 915, deviceScaleFactor: 2, mobile: true });
+  await send('Emulation.setDeviceMetricsOverride', {
+    width: 412,
+    height: 915,
+    deviceScaleFactor: 2,
+    mobile: true,
+  });
   await send('Page.navigate', { url: base });
   await wait(1500);
   await shot('1-home');
@@ -121,10 +184,18 @@ try {
   // two-photo mode: photo 1 must be taken automatically from the live camera
   await evaluate(`document.querySelector('[data-go=snap]').click()`);
   let snapped = false;
-  for (let i = 0; i < 40 && !snapped; i++) {
-    await wait(500);
+  let liveShot = false;
+  for (let i = 0; i < 200 && !snapped; i++) {
+    await wait(100);
     snapped = await evaluate(`document.querySelector('#snap-thumbs .thumb.done') !== null`);
-    if (i === 3) await shot('2a-snap-live');
+    // the moment three faces are found, before the automatic capture
+    if (
+      !liveShot &&
+      (await evaluate(`document.getElementById('snap-status').textContent.includes('still halten')`))
+    ) {
+      await shot('2a-snap-live');
+      liveShot = true;
+    }
   }
   const liveStatus = await evaluate(`document.getElementById('snap-status').textContent`);
   console.log('auto capture', snapped, '|', liveStatus);
@@ -155,7 +226,9 @@ try {
   // live camera (Chrome's fake device) must start and feed the preview
   await evaluate(`document.querySelector('[data-go=scan]').click()`);
   await wait(1500);
-  const cam = await evaluate(`({ w: video.videoWidth, msg: document.getElementById('cam-msg').hidden, dot: getComputedStyle(document.querySelector('.cell')).getPropertyValue('--c') })`);
+  const cam = await evaluate(
+    `({ w: video.videoWidth, msg: document.getElementById('cam-msg').hidden, dot: getComputedStyle(document.querySelector('.cell')).getPropertyValue('--c') })`,
+  );
   console.log('camera', cam);
   await shot('2-scan-camera');
 
@@ -263,10 +336,14 @@ try {
   })()`);
   console.log('animation mismatches', animBad);
   console.log('errors', errors);
-  const ok = snapped && snapOk && cam.w > 0 && result.matches && result.solves && !animBad.length && !errors.length;
+  const ok =
+    snapped && snapOk && cam.w > 0 && result.matches && result.solves && !animBad.length && !errors.length;
   console.log(ok ? 'E2E OK' : 'E2E FAILED');
   process.exitCode = ok ? 0 : 1;
 } finally {
   ws?.close();
   chrome.kill();
+  server?.close();
+  await new Promise((r) => chrome.once('exit', r));
+  rmSync(profile, { recursive: true, force: true });
 }

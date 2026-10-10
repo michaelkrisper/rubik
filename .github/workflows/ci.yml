@@ -1,0 +1,67 @@
+name: CI
+
+# Prüft jeden Push und Pull Request (Lint, Unit-Tests mit Abdeckung,
+# Browsertest) und veröffentlicht den Stand von main danach auf GitHub Pages.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  check:
+    name: Lint und Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npx biome ci
+      - run: npm run test:coverage
+
+      # Ein gerenderter, verwürfelter Würfel als Fake-Kamera (Auto-Aufnahme),
+      # dazu Galerie-Upload, Seiten-Scan, Löser und 3D-Animation.
+      # Chrome ist auf dem Runner vorinstalliert.
+      - run: npm run test:e2e -- '' e2e-screenshots
+      - uses: actions/upload-artifact@v6
+        if: failure()
+        with:
+          name: e2e-screenshots
+          path: e2e-screenshots
+
+  deploy:
+    name: GitHub Pages
+    needs: check
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.pages.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Seite zusammenstellen
+        run: |
+          mkdir _site
+          cp -r index.html style.css sw.js worker.js manifest.webmanifest js icons vendor _site/
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+      - id: pages
+        uses: actions/deploy-pages@v5

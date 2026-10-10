@@ -7,7 +7,9 @@ import { COLORS, EXPECTED, nearest } from './color.js';
 import { identify, assemble } from './detect.js';
 
 const $ = (id) => document.getElementById(id);
-const LIVE_SIDE = 480, FULL_SIDE = 1024, STABLE = 3;
+const LIVE_SIDE = 480,
+  FULL_SIDE = 1024,
+  STABLE = 3;
 const REF = FACES.map((f) => COLORS[EXPECTED[f]].lab);
 const hex = (letter) => COLORS[EXPECTED[letter]].hex;
 const cname = (letter) => COLORS[EXPECTED[letter]].name;
@@ -26,11 +28,24 @@ const detect = (img, maxSide) =>
     worker.postMessage({ id, img, maxSide }, [img.data.buffer]);
   });
 
-const video = $('snap-video'), still = $('snap-photo'), view = $('snap-view'), overlay = $('snap-overlay');
-let photos = [null, null], step = 0, stream = null, camToken = 0, running = false, busy = false, capturing = false, stable = 0, source = 'video', onDone = null;
+const video = $('snap-video'),
+  still = $('snap-photo'),
+  view = $('snap-view'),
+  overlay = $('snap-overlay');
+let photos = [null, null],
+  step = 0,
+  stream = null,
+  camToken = 0,
+  running = false,
+  busy = false,
+  capturing = false,
+  stable = 0,
+  source = 'video',
+  onDone = null;
 
 function frame(el, maxSide) {
-  const w = el.videoWidth || el.naturalWidth || el.width, h = el.videoHeight || el.naturalHeight || el.height;
+  const w = el.videoWidth || el.naturalWidth || el.width,
+    h = el.videoHeight || el.naturalHeight || el.height;
   const k = Math.min(1, maxSide / Math.max(w, h));
   const c = document.createElement('canvas');
   c.width = Math.round(w * k);
@@ -49,7 +64,10 @@ function secondCorner() {
   const top = rest.includes('D') ? 'D' : rest[0];
   const [y, z] = rest.filter((f) => f !== top);
   const n = [NORMAL[top], NORMAL[y], NORMAL[z]];
-  const det = n[0][0] * (n[1][1] * n[2][2] - n[1][2] * n[2][1]) - n[0][1] * (n[1][0] * n[2][2] - n[1][2] * n[2][0]) + n[0][2] * (n[1][0] * n[2][1] - n[1][1] * n[2][0]);
+  const det =
+    n[0][0] * (n[1][1] * n[2][2] - n[1][2] * n[2][1]) -
+    n[0][1] * (n[1][0] * n[2][2] - n[1][2] * n[2][0]) +
+    n[0][2] * (n[1][0] * n[2][1] - n[1][1] * n[2][0]);
   // clockwise in the picture is top -> right -> left
   return det < 0 ? [top, z, y] : [top, y, z];
 }
@@ -60,36 +78,46 @@ function isoSvg(top, left, right) {
     [[6, 31], [50, 56], [6, 81], left],
     [[50, 56], [94, 31], [50, 106], right],
   ];
-  const at = (o, a, b, s, t) => [o[0] + (a[0] - o[0]) * s + (b[0] - o[0]) * t, o[1] + (a[1] - o[1]) * s + (b[1] - o[1]) * t];
+  const at = (o, a, b, s, t) => [
+    o[0] + (a[0] - o[0]) * s + (b[0] - o[0]) * t,
+    o[1] + (a[1] - o[1]) * s + (b[1] - o[1]) * t,
+  ];
   let svg = '<svg viewBox="0 0 100 112" aria-hidden="true">';
   for (const [o, a, b, letter] of faces) {
     for (let i = 0; i < 3; i++) {
       for (let j = 0; j < 3; j++) {
         const g = 0.06;
-        const pts = [[i + g, j + g], [i + 1 - g, j + g], [i + 1 - g, j + 1 - g], [i + g, j + 1 - g]].map(([s, t]) => at(o, a, b, s / 3, t / 3));
+        const pts = [
+          [i + g, j + g],
+          [i + 1 - g, j + g],
+          [i + 1 - g, j + 1 - g],
+          [i + g, j + 1 - g],
+        ].map(([s, t]) => at(o, a, b, s / 3, t / 3));
         const fill = i === 1 && j === 1 ? hex(letter) : '#3a3f48';
         svg += `<polygon points="${pts.map((p) => p.map((v) => v.toFixed(1)).join(',')).join(' ')}" fill="${fill}"/>`;
       }
     }
   }
-  return svg + '</svg>';
+  return `${svg}</svg>`;
 }
 
 function render() {
   $('snap-title').textContent = `Foto ${step + 1} von 2`;
   if (step === 0) {
     $('snap-iso').innerHTML = isoSvg('U', 'F', 'R');
-    $('snap-text').innerHTML = '<b>Weiß nach oben</b> und eine Ecke zur Kamera drehen, so dass du drei Seiten siehst. Die Aufnahme passiert automatisch.';
+    $('snap-text').innerHTML =
+      '<b>Weiß nach oben</b> und eine Ecke zur Kamera drehen, so dass du drei Seiten siehst. Die Aufnahme passiert automatisch.';
   } else {
     const [top, left, right] = secondCorner();
     $('snap-iso').innerHTML = isoSvg(top, left, right);
-    $('snap-text').innerHTML = `Würfel umdrehen: <b>${cname(top)} nach oben</b>, ${cname(left)} links, ${cname(right)} rechts – also die drei Seiten, die auf Foto 1 fehlen.`;
+    $('snap-text').innerHTML =
+      `Würfel umdrehen: <b>${cname(top)} nach oben</b>, ${cname(left)} links, ${cname(right)} rechts – also die drei Seiten, die auf Foto 1 fehlen.`;
   }
   $('snap-redo').hidden = step === 0;
   $('snap-thumbs').innerHTML = '';
   photos.forEach((p, i) => {
     const box = document.createElement('div');
-    box.className = 'thumb' + (p ? ' done' : i === step ? ' cur' : '');
+    box.className = `thumb${p ? ' done' : i === step ? ' cur' : ''}`;
     if (p) box.append(p.thumb);
     box.append(Object.assign(document.createElement('span'), { textContent: `Foto ${i + 1}` }));
     $('snap-thumbs').append(box);
@@ -112,9 +140,11 @@ function message(html) {
 
 // detection pixels -> viewport pixels (object-fit: cover)
 function mapper(iw, ih, scale) {
-  const VW = view.clientWidth, VH = view.clientHeight;
+  const VW = view.clientWidth,
+    VH = view.clientHeight;
   const s = Math.max(VW / iw, VH / ih);
-  const tx = (VW - iw * s) / 2, ty = (VH - ih * s) / 2;
+  const tx = (VW - iw * s) / 2,
+    ty = (VH - ih * s) / 2;
   return ([x, y]) => [x * scale * s + tx, y * scale * s + ty];
 }
 
@@ -129,7 +159,8 @@ function draw(r, map) {
   for (const f of r.faces) {
     const q = f.corners.map(map);
     g.beginPath();
-    q.forEach((p, i) => (i ? g.lineTo(...p) : g.moveTo(...p)));
+    g.moveTo(...q[0]);
+    for (const p of q.slice(1)) g.lineTo(...p);
     g.closePath();
     g.lineWidth = 3;
     g.strokeStyle = r.ok ? '#fff' : '#ffb020';
@@ -169,20 +200,26 @@ async function startCamera() {
       audio: false,
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
     });
-    if (token !== camToken) return s.getTracks().forEach((t) => t.stop());
+    if (token !== camToken) {
+      for (const t of s.getTracks()) t.stop();
+      return;
+    }
     stream = s;
     video.srcObject = s;
     await video.play().catch(() => {});
     run();
   } catch (err) {
-    if (token === camToken) message(`Kein Kamerazugriff (${err.name}). Erlaube die Kamera in den Browser-Einstellungen oder wähle Fotos aus.`);
+    if (token === camToken)
+      message(
+        `Kein Kamerazugriff (${err.name}). Erlaube die Kamera in den Browser-Einstellungen oder wähle Fotos aus.`,
+      );
   }
 }
 
 function stopCamera() {
   camToken++;
   running = false;
-  stream?.getTracks().forEach((t) => t.stop());
+  for (const t of stream?.getTracks() ?? []) t.stop();
   stream = null;
   video.srcObject = null;
 }
@@ -224,8 +261,9 @@ function judge(r) {
 
 function hintFor(r) {
   if (!r.faces.length) return 'Suche Würfel … Ecke zur Kamera, Würfel gut ausgeleuchtet.';
-  if (r.faces.length < 3) return `${r.faces.length} von 3 Seiten erkannt – eine Ecke direkt zur Kamera drehen.`;
-  return r.error[0].toUpperCase() + r.error.slice(1) + '.';
+  if (r.faces.length < 3)
+    return `${r.faces.length} von 3 Seiten erkannt – eine Ecke direkt zur Kamera drehen.`;
+  return `${r.error[0].toUpperCase() + r.error.slice(1)}.`;
 }
 
 async function capture() {
@@ -246,7 +284,8 @@ async function capture() {
 }
 
 function thumbnail(el) {
-  const w = el.videoWidth || el.naturalWidth, h = el.videoHeight || el.naturalHeight;
+  const w = el.videoWidth || el.naturalWidth,
+    h = el.videoHeight || el.naturalHeight;
   const c = document.createElement('canvas');
   const s = 160 / Math.max(w, h);
   c.width = Math.round(w * s);
@@ -263,7 +302,8 @@ function accept(r, thumb, scale, iw) {
   g.lineWidth = 1.5;
   for (const f of r.faces) {
     g.beginPath();
-    f.corners.forEach(([x, y], i) => (i ? g.lineTo(x * k, y * k) : g.moveTo(x * k, y * k)));
+    g.moveTo(f.corners[0][0] * k, f.corners[0][1] * k);
+    for (const [x, y] of f.corners.slice(1)) g.lineTo(x * k, y * k);
     g.closePath();
     g.stroke();
   }
@@ -276,7 +316,10 @@ function accept(r, thumb, scale, iw) {
     stable = 0;
     setTimeout(() => {
       render();
-      if (source === 'photo') message('Jetzt das zweite Foto wählen – oder <button class="btn" id="snap-cam">Kamera verwenden</button>');
+      if (source === 'photo')
+        message(
+          'Jetzt das zweite Foto wählen – oder <button type="button" class="btn" id="snap-cam">Kamera verwenden</button>',
+        );
     }, 700);
     return;
   }
@@ -318,7 +361,7 @@ $('snap-file').addEventListener('change', async (e) => {
   if (hint.ok) {
     status('Drei Seiten erkannt.', 'ok');
     accept(r, thumbnail(still), scale, still.naturalWidth);
-  } else status(hint.text + ' Anderes Foto wählen.');
+  } else status(`${hint.text} Anderes Foto wählen.`);
   URL.revokeObjectURL(url);
 });
 

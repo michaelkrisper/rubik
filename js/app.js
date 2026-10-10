@@ -1,4 +1,13 @@
-import { FACES, SOLVED, validate, findRotationFix, rotateFace, parseMoves, applyMoves, invertMove } from './cube.js';
+import {
+  FACES,
+  SOLVED,
+  validate,
+  findRotationFix,
+  rotateFace,
+  parseMoves,
+  applyMoves,
+  invertMove,
+} from './cube.js';
 import { COLORS, EXPECTED, sampleCells, classify, nearest, nameSeeds, dist, repair } from './color.js';
 import { CubeView } from './view3d.js';
 import { enterSnap, leaveSnap } from './snap.js';
@@ -16,7 +25,14 @@ const STEP_TEXT = {
   D: 'Würfel ganz umdrehen: Gelb zur Kamera, Grün zeigt nach oben.',
 };
 // neighbouring face that must be at this edge of the photo
-const STEP_EDGE = { F: ['top', 'U'], R: ['top', 'U'], B: ['top', 'U'], L: ['top', 'U'], U: ['bottom', 'F'], D: ['top', 'F'] };
+const STEP_EDGE = {
+  F: ['top', 'U'],
+  R: ['top', 'U'],
+  B: ['top', 'U'],
+  L: ['top', 'U'],
+  U: ['bottom', 'F'],
+  D: ['top', 'F'],
+};
 
 const SIDE = { U: 'obere', D: 'untere', F: 'vordere', B: 'hintere', R: 'rechte', L: 'linke' };
 const FROM = { U: 'oben', D: 'unten', F: 'vorne', B: 'hinten', R: 'rechts', L: 'links' };
@@ -73,8 +89,10 @@ function seeds() {
 function recolor() {
   const sd = seeds();
   const fixed = new Map();
-  S.locked.forEach((k, i) => k >= 0 && fixed.set(i, k));
-  FACES.forEach((_, k) => fixed.set(k * 9 + 4, k));
+  S.locked.forEach((k, i) => {
+    if (k >= 0) fixed.set(i, k);
+  });
+  for (let k = 0; k < 6; k++) fixed.set(k * 9 + 4, k);
   S.assign = classify(S.labs, sd, fixed);
   S.names = nameSeeds(sd);
 }
@@ -90,7 +108,7 @@ function autoRepair() {
   if (!r) return;
   S.assign = r.assign;
   S.auto = r.changed;
-  r.changed.forEach((i) => (S.locked[i] = S.assign[i]));
+  for (const i of r.changed) S.locked[i] = S.assign[i];
 }
 
 function resetCube() {
@@ -154,12 +172,18 @@ $('resume').addEventListener('click', () => show(S.start ? 'solve' : 'review'));
 
 // --- camera and photo source ---
 
-const video = $('video'), photo = $('photo'), viewport = $('viewport'), grid = $('grid');
+const video = $('video'),
+  photo = $('photo'),
+  viewport = $('viewport'),
+  grid = $('grid');
 const N = 96;
 const canvas = document.createElement('canvas');
 canvas.width = canvas.height = N;
 const ctx = canvas.getContext('2d', { willReadFrequently: true });
-let stream = null, camToken = 0, source = 'video', previewTimer = null;
+let stream = null,
+  camToken = 0,
+  source = 'video',
+  previewTimer = null;
 const photoTf = { s: 1, tx: 0, ty: 0 };
 
 for (let i = 0; i < 9; i++) grid.append(Object.assign(document.createElement('div'), { className: 'cell' }));
@@ -185,7 +209,10 @@ async function startCamera() {
       audio: false,
       video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 1280 } },
     });
-    if (token !== camToken) return s.getTracks().forEach((t) => t.stop());
+    if (token !== camToken) {
+      for (const t of s.getTracks()) t.stop();
+      return;
+    }
     stream = s;
     video.srcObject = s;
     await video.play().catch(() => {});
@@ -193,7 +220,9 @@ async function startCamera() {
     previewTimer = setInterval(preview, 200);
   } catch (err) {
     if (token !== camToken) return;
-    camMessage(`Kein Kamerazugriff (${err.name}). Erlaube die Kamera in den Browser-Einstellungen oder wähle ein Foto.`);
+    camMessage(
+      `Kein Kamerazugriff (${err.name}). Erlaube die Kamera in den Browser-Einstellungen oder wähle ein Foto.`,
+    );
   }
 }
 
@@ -201,7 +230,7 @@ function stopCamera() {
   camToken++;
   clearInterval(previewTimer);
   previewTimer = null;
-  stream?.getTracks().forEach((t) => t.stop());
+  for (const t of stream?.getTracks() ?? []) t.stop();
   stream = null;
   video.srcObject = null;
 }
@@ -213,7 +242,8 @@ function geometry() {
     if (photo.hidden || !photo.naturalWidth) return null;
     return { el: photo, w: photo.naturalWidth, h: photo.naturalHeight, ...photoTf };
   }
-  const w = video.videoWidth, h = video.videoHeight;
+  const w = video.videoWidth,
+    h = video.videoHeight;
   if (!w || !h) return null;
   const s = Math.max(V / w, V / h);
   return { el: video, w, h, s, tx: (V - w * s) / 2, ty: (V - h * s) / 2 };
@@ -272,7 +302,10 @@ $('file').addEventListener('change', (e) => {
 // pan and pinch-zoom a chosen photo under the grid
 const pointers = new Map();
 const spread = (pts) => (pts.length < 2 ? 0 : Math.hypot(pts[0][0] - pts[1][0], pts[0][1] - pts[1][1]));
-const centroid = (pts) => [pts.reduce((s, p) => s + p[0], 0) / pts.length, pts.reduce((s, p) => s + p[1], 0) / pts.length];
+const centroid = (pts) => [
+  pts.reduce((s, p) => s + p[0], 0) / pts.length,
+  pts.reduce((s, p) => s + p[1], 0) / pts.length,
+];
 
 function zoomAt([px, py], f) {
   photoTf.tx = px - (px - photoTf.tx) * f;
@@ -291,22 +324,29 @@ viewport.addEventListener('pointermove', (e) => {
   const before = [...pointers.values()];
   pointers.set(e.pointerId, [e.clientX, e.clientY]);
   const after = [...pointers.values()];
-  const c0 = centroid(before), c1 = centroid(after);
-  if (after.length >= 2 && spread(before) > 0) zoomAt([c1[0] - r.left, c1[1] - r.top], spread(after) / spread(before));
+  const c0 = centroid(before),
+    c1 = centroid(after);
+  if (after.length >= 2 && spread(before) > 0)
+    zoomAt([c1[0] - r.left, c1[1] - r.top], spread(after) / spread(before));
   photoTf.tx += c1[0] - c0[0];
   photoTf.ty += c1[1] - c0[1];
   layoutPhoto();
   preview();
 });
-for (const ev of ['pointerup', 'pointercancel']) viewport.addEventListener(ev, (e) => pointers.delete(e.pointerId));
-viewport.addEventListener('wheel', (e) => {
-  if (source !== 'photo' || photo.hidden) return;
-  e.preventDefault();
-  const r = viewport.getBoundingClientRect();
-  zoomAt([e.clientX - r.left, e.clientY - r.top], Math.exp(-e.deltaY * 0.0015));
-  layoutPhoto();
-  preview();
-}, { passive: false });
+for (const ev of ['pointerup', 'pointercancel'])
+  viewport.addEventListener(ev, (e) => pointers.delete(e.pointerId));
+viewport.addEventListener(
+  'wheel',
+  (e) => {
+    if (source !== 'photo' || photo.hidden) return;
+    e.preventDefault();
+    const r = viewport.getBoundingClientRect();
+    zoomAt([e.clientX - r.left, e.clientY - r.top], Math.exp(-e.deltaY * 0.0015));
+    layoutPhoto();
+    preview();
+  },
+  { passive: false },
+);
 
 // --- scanning ---
 
@@ -323,7 +363,7 @@ function renderStep() {
   $('scan-title').textContent = S.single ? `Seite neu: ${FACE_NAME[f]}` : `Seite ${S.step + 1} von 6`;
   $('scan-text').textContent = STEP_TEXT[f];
   $('scan-back').disabled = !!S.single || S.step === 0;
-  $('scan-dots').innerHTML = SCAN_ORDER.map((g, i) => {
+  $('scan-dots').innerHTML = SCAN_ORDER.map((g, _i) => {
     const k = FACES.indexOf(g);
     const cls = g === f ? 'cur' : S.labs[k * 9 + 4] ? 'done' : '';
     return `<i class="${cls}" style="--c:${COLORS[EXPECTED[g]].hex}" title="${FACE_NAME[g]}"></i>`;
@@ -347,15 +387,26 @@ $('shoot').addEventListener('click', () => {
   const f = currentFace();
   const k = FACES.indexOf(f);
   const center = samples[4].lab;
-  const dup = FACES.findIndex((g, j) => j !== k && S.labs[j * 9 + 4] && dist(S.labs[j * 9 + 4], center) < 120);
-  if (dup >= 0 && !confirm(`Diese Mitte sieht aus wie die Seite „${FACE_NAME[FACES[dup]]}“, die schon aufgenommen ist. Trotzdem übernehmen?`)) return;
+  // same face scanned twice: centres nearly identical (red/orange in warm light differ more)
+  const dup = FACES.findIndex(
+    (_g, j) => j !== k && S.labs[j * 9 + 4] && dist(S.labs[j * 9 + 4], center) < 40,
+  );
+  if (
+    dup >= 0 &&
+    !confirm(
+      `Diese Mitte sieht aus wie die Seite „${FACE_NAME[FACES[dup]]}“, die schon aufgenommen ist. Trotzdem übernehmen?`,
+    )
+  )
+    return;
   samples.forEach((s, i) => {
     S.labs[k * 9 + i] = s.lab;
     S.locked[k * 9 + i] = -1;
   });
   recolor();
   save();
-  [...grid.children].forEach((cell, i) => cell.style.setProperty('--c', hexOf(S.assign[k * 9 + i])));
+  [...grid.children].forEach((cell, i) => {
+    cell.style.setProperty('--c', hexOf(S.assign[k * 9 + i]));
+  });
   grid.classList.add('flash');
   navigator.vibrate?.(30);
   setTimeout(() => {
@@ -369,7 +420,9 @@ $('shoot').addEventListener('click', () => {
     S.step++;
     if (source === 'photo') {
       photo.hidden = true;
-      camMessage('Foto für die nächste Seite wählen – oder <button class="btn" id="use-cam">Kamera verwenden</button>');
+      camMessage(
+        'Foto für die nächste Seite wählen – oder <button type="button" class="btn" id="use-cam">Kamera verwenden</button>',
+      );
     }
     renderStep();
   }, 650);
@@ -391,57 +444,61 @@ const NET_ORDER = ['U', 'L', 'F', 'R', 'B', 'D'];
 function renderReview(highlight = []) {
   const net = $('net');
   net.innerHTML = '';
-  for (const f of NET_ORDER) {
-    const k = FACES.indexOf(f);
-    const face = document.createElement('div');
-    face.className = 'face';
-    face.style.gridArea = f;
-    for (let i = 0; i < 9; i++) {
-      const idx = k * 9 + i;
-      const b = document.createElement('button');
-      b.className = 'st';
-      b.dataset.i = idx;
-      const hex = hexOf(S.assign[idx]);
-      if (hex) b.style.background = hex;
-      else b.classList.add('unknown');
-      if (i === 4) b.classList.add('center');
-      if (S.locked[idx] >= 0) b.classList.add('locked');
-      if (highlight.includes(idx)) b.classList.add('bad');
-      if (S.auto.includes(idx)) b.classList.add('auto');
-      face.append(b);
-    }
-    const label = document.createElement('button');
-    label.className = 'face-label';
-    label.dataset.rescan = f;
-    label.textContent = `${FACE_NAME[f]} ↻`;
-    label.title = 'Diese Seite neu fotografieren';
-    face.append(label);
-    net.append(face);
-  }
+  for (const f of NET_ORDER) net.append(renderFace(f, highlight));
   renderPalette();
+  renderVerdict();
+}
+
+function renderFace(f, highlight) {
+  const k = FACES.indexOf(f);
+  const face = document.createElement('div');
+  face.className = 'face';
+  face.style.gridArea = f;
+  for (let i = 0; i < 9; i++) {
+    const idx = k * 9 + i;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'st';
+    b.dataset.i = idx;
+    const hex = hexOf(S.assign[idx]);
+    if (hex) b.style.background = hex;
+    b.classList.toggle('unknown', !hex);
+    b.classList.toggle('center', i === 4);
+    b.classList.toggle('locked', S.locked[idx] >= 0);
+    b.classList.toggle('bad', highlight.includes(idx));
+    b.classList.toggle('auto', S.auto.includes(idx));
+    face.append(b);
+  }
+  const label = document.createElement('button');
+  label.type = 'button';
+  label.className = 'face-label';
+  label.dataset.rescan = f;
+  label.textContent = `${FACE_NAME[f]} ↻`;
+  label.title = 'Diese Seite neu fotografieren';
+  face.append(label);
+  return face;
+}
+
+function renderVerdict() {
   const v = validate(facelets());
   const msg = $('review-msg');
-  if (v.ok) {
-    msg.hidden = false;
-    msg.className = 'msg ok';
-    msg.textContent = S.auto.length
-      ? 'Zwei Felder (gestrichelt) wurden automatisch getauscht, damit der Würfel aufgeht – kurz mit deinem Würfel vergleichen.'
-      : 'Alles stimmig – kurz mit deinem Würfel vergleichen, dann lösen.';
-  } else if (v.reason === 'missing' && v.facelets.length === 48) {
-    msg.hidden = true;
-  } else {
-    msg.hidden = false;
-    msg.className = 'msg';
-    msg.textContent = explain(v);
-  }
+  msg.hidden = !v.ok && v.reason === 'missing' && v.facelets.length === 48;
+  msg.className = v.ok ? 'msg ok' : 'msg';
+  if (!v.ok) msg.textContent = explain(v);
+  else if (S.auto.length) {
+    msg.textContent =
+      'Zwei Felder (gestrichelt) wurden automatisch getauscht, damit der Würfel aufgeht – kurz mit deinem Würfel vergleichen.';
+  } else msg.textContent = 'Alles stimmig – kurz mit deinem Würfel vergleichen, dann lösen.';
 }
 
 function renderPalette() {
   const counts = FACES.map((_, k) => S.assign.filter((a) => a === k).length);
-  $('palette').innerHTML = FACES.map((f, k) => `
-    <button class="pal${k === S.brush ? ' sel' : ''}${counts[k] !== 9 ? ' off' : ''}" data-k="${k}" style="--c:${hexOf(k)}">
+  $('palette').innerHTML = FACES.map(
+    (_f, k) => `
+    <button type="button" class="pal${k === S.brush ? ' sel' : ''}${counts[k] !== 9 ? ' off' : ''}" data-k="${k}" style="--c:${hexOf(k)}">
       <span>${nameOf(k)}</span><small>${counts[k]}/9</small>
-    </button>`).join('');
+    </button>`,
+  ).join('');
 }
 
 $('palette').addEventListener('click', (e) => {
@@ -473,26 +530,36 @@ $('net').addEventListener('click', (e) => {
 function explain(v) {
   const nm = (c) => nameOf(FACES.indexOf(c));
   switch (v.reason) {
-    case 'missing': return `Noch ${v.facelets.length} Felder ohne Farbe.`;
+    case 'missing':
+      return `Noch ${v.facelets.length} Felder ohne Farbe.`;
     case 'count': {
       const parts = FACES.filter((f) => v.counts[f] !== 9).map((f) => `${nm(f)} ${v.counts[f]}×`);
       return `Jede Farbe muss genau 9× vorkommen: ${parts.join(', ')}.`;
     }
-    case 'corner': return `Eine Ecke ${v.colors.map(nm).join('/')} gibt es nicht. Prüfe die markierten Felder.`;
-    case 'corner-dup': return `Die Ecke ${v.colors.map(nm).join('/')} kommt doppelt vor. Prüfe die markierten Felder.`;
-    case 'edge': return `Eine Kante ${v.colors.map(nm).join('/')} gibt es nicht. Prüfe die markierten Felder.`;
-    case 'edge-dup': return `Die Kante ${v.colors.map(nm).join('/')} kommt doppelt vor. Prüfe die markierten Felder.`;
-    case 'twist': return 'Eine Ecke ist verdreht – entweder falsch erkannt oder der Würfel wurde so zusammengesetzt.';
-    case 'flip': return 'Eine Kante ist gekippt – entweder falsch erkannt oder der Würfel wurde so zusammengesetzt.';
-    case 'parity': return 'Zwei Teile sind vertauscht – vermutlich wurden zwei Farben verwechselt.';
-    default: return 'Ungültiger Würfel.';
+    case 'corner':
+      return `Eine Ecke ${v.colors.map(nm).join('/')} gibt es nicht. Prüfe die markierten Felder.`;
+    case 'corner-dup':
+      return `Die Ecke ${v.colors.map(nm).join('/')} kommt doppelt vor. Prüfe die markierten Felder.`;
+    case 'edge':
+      return `Eine Kante ${v.colors.map(nm).join('/')} gibt es nicht. Prüfe die markierten Felder.`;
+    case 'edge-dup':
+      return `Die Kante ${v.colors.map(nm).join('/')} kommt doppelt vor. Prüfe die markierten Felder.`;
+    case 'twist':
+      return 'Eine Ecke ist verdreht – entweder falsch erkannt oder der Würfel wurde so zusammengesetzt.';
+    case 'flip':
+      return 'Eine Kante ist gekippt – entweder falsch erkannt oder der Würfel wurde so zusammengesetzt.';
+    case 'parity':
+      return 'Zwei Teile sind vertauscht – vermutlich wurden zwei Farben verwechselt.';
+    default:
+      return 'Ungültiger Würfel.';
   }
 }
 
 // --- solver ---
 
 const worker = new Worker('worker.js');
-let solverReady = false, jobId = 0;
+let solverReady = false,
+  jobId = 0;
 const jobs = new Map();
 worker.onmessage = ({ data }) => {
   if (data.type === 'ready') solverReady = true;
@@ -501,11 +568,12 @@ worker.onmessage = ({ data }) => {
   jobs.delete(data.id);
   data.type === 'solution' ? job.resolve(data.moves) : job.reject(new Error(data.message));
 };
-const solve = (str) => new Promise((resolve, reject) => {
-  const id = ++jobId;
-  jobs.set(id, { resolve, reject });
-  worker.postMessage({ id, facelets: str });
-});
+const solve = (str) =>
+  new Promise((resolve, reject) => {
+    const id = ++jobId;
+    jobs.set(id, { resolve, reject });
+    worker.postMessage({ id, facelets: str });
+  });
 
 $('solve-btn').addEventListener('click', async () => {
   let v = validate(facelets());
@@ -552,14 +620,17 @@ $('solve-btn').addEventListener('click', async () => {
 
 // --- solution playback ---
 
-let view = null, playing = false;
+let view = null,
+  playing = false;
 
 function describe(m) {
   const f = m[0];
   const color = nameOf(FACES.indexOf(f));
   const [cw, ccw] = MOTION[f];
-  if (m[1] === '2') return `Die ${SIDE[f]} Seite (${color}) halb herum drehen, 180° – egal in welche Richtung.`;
-  if (m[1] === "'") return `Die ${SIDE[f]} Seite (${color}) eine Vierteldrehung gegen den Uhrzeigersinn, von ${FROM[f]} gesehen: ${cw.replace(/nach \w+$/, ccw)}.`;
+  if (m[1] === '2')
+    return `Die ${SIDE[f]} Seite (${color}) halb herum drehen, 180° – egal in welche Richtung.`;
+  if (m[1] === "'")
+    return `Die ${SIDE[f]} Seite (${color}) eine Vierteldrehung gegen den Uhrzeigersinn, von ${FROM[f]} gesehen: ${cw.replace(/nach \w+$/, ccw)}.`;
   return `Die ${SIDE[f]} Seite (${color}) eine Vierteldrehung im Uhrzeigersinn, von ${FROM[f]} gesehen: ${cw}.`;
 }
 
@@ -567,20 +638,27 @@ function renderSolve() {
   if (!view) view = new CubeView($('cube3d'), letterColors());
   view.colors = letterColors();
   view.setState(applyMoves(S.start, S.moves.slice(0, S.idx)));
-  $('hold').innerHTML = `Halte den Würfel so: <b>${nameOf(0)}</b> oben, <b>${nameOf(2)}</b> vorne – und lass ihn so.` +
+  $('hold').innerHTML =
+    `Halte den Würfel so: <b>${nameOf(0)}</b> oben, <b>${nameOf(2)}</b> vorne – und lass ihn so.` +
     (S.note ? `<br><small>${S.note}</small>` : '');
-  $('moves').innerHTML = S.moves.map((m, i) => `<li><button data-k="${i}">${m}</button></li>`).join('');
+  $('moves').innerHTML = S.moves
+    .map((m, i) => `<li><button type="button" data-k="${i}">${m}</button></li>`)
+    .join('');
   updateSolve();
 }
 
 function updateSolve() {
-  const n = S.moves.length, i = S.idx;
+  const n = S.moves.length,
+    i = S.idx;
   $('solve-title').textContent = n ? `Zug ${Math.min(i + 1, n)} von ${n}` : 'Lösung';
   [...$('moves').querySelectorAll('button')].forEach((b, k) => {
     b.className = k < i ? 'done' : k === i ? 'cur' : '';
   });
-  $('moves').querySelector('.cur')?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
-  const nm = $('now-move'), nd = $('now-desc');
+  $('moves')
+    .querySelector('.cur')
+    ?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+  const nm = $('now-move'),
+    nd = $('now-desc');
   if (i >= n) {
     nm.textContent = 'Gelöst!';
     nd.textContent = n ? `Fertig nach ${n} Zügen.` : 'Der Würfel ist bereits gelöst.';

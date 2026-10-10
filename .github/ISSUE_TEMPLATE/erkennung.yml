@@ -1,0 +1,26 @@
+name: Falsch erkannt
+description: Der Würfel wurde nicht gefunden oder Farben falsch erkannt
+labels: [erkennung]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Danke! Die beiden Fotos helfen am meisten. Bitte nur Fotos anhängen,
+        die du selbst gemacht hast; sie werden hier öffentlich.
+  - type: textarea
+    id: was
+    attributes:
+      label: Was ist passiert?
+      description: z. B. „bleibt bei ‚2 von 3 Seiten erkannt‘ stehen“ oder „Rot und Orange vertauscht“
+    validations:
+      required: true
+  - type: textarea
+    id: fotos
+    attributes:
+      label: Fotos
+      description: Hierher ziehen oder einfügen (Foto 1 mit Weiß oben, Foto 2 mit Gelb oben).
+  - type: input
+    id: geraet
+    attributes:
+      label: Gerät und Browser
+      placeholder: Pixel 9, Chrome 152

@@ -2,7 +2,7 @@
 // seconds, so it happens here once, off the main thread.
 importScripts('vendor/cubejs/cube.js', 'vendor/cubejs/solve.js');
 
-onmessage = (e) => {
+addEventListener('message', (e) => {
   const { id, facelets } = e.data;
   try {
     const moves = Cube.fromString(facelets).solve();
@@ -10,7 +10,7 @@ onmessage = (e) => {
   } catch (err) {
     postMessage({ type: 'error', id, message: String(err) });
   }
-};
+});
 
 Cube.initSolver();
 postMessage({ type: 'ready' });
