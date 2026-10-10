@@ -54,3 +54,20 @@ test('nameSeeds maps measured centres to colour names', () => {
   const seeds = FACES.map((f) => rgbToLab(COLORS[EXPECTED[f]].ref.map((v) => v * 0.8)));
   assert.deepEqual(nameSeeds(seeds), FACES.map((f) => EXPECTED[f]));
 });
+
+test('repair swaps back two stickers that broke the cube', async () => {
+  const { validate } = await import('../js/cube.js');
+  const { repair } = await import('../js/color.js');
+  const rnd = rng(5);
+  const state = applyMoves(SOLVED, Array.from({ length: 25 }, () => MOVES[Math.floor(rnd() * 18)]));
+  const labs = photograph(state, 9);
+  const truth = [...state].map((c) => FACES.indexOf(c));
+  // two stickers of different colours read as each other's colour
+  const i = truth.findIndex((k, n) => n % 9 !== 4 && k === 0);
+  const j = truth.findIndex((k, n) => n % 9 !== 4 && k === 1);
+  const wrong = truth.slice();
+  [wrong[i], wrong[j]] = [wrong[j], wrong[i]];
+  [labs[i], labs[j]] = [labs[i].map((v, d) => (v + labs[j][d]) / 2), labs[j].map((v, d) => (v + labs[i][d]) / 2)];
+  const r = repair(labs, wrong, (a) => validate(a.map((k) => FACES[k]).join('')).ok);
+  assert.deepEqual(r.assign, truth);
+});

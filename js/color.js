@@ -149,3 +149,29 @@ export function nameSeeds(seeds) {
   perm(keys, [], 0);
   return best;
 }
+
+// Swaps the colours of the two non-centre stickers whose exchange costs least
+// and makes isValid(assign) true. Counts stay at 9 each. Returns the changed
+// facelets or null.
+export function repair(labs, assign, isValid) {
+  const cents = [0, 1, 2, 3, 4, 5].map((k) => {
+    const m = labs.filter((l, i) => l && assign[i] === k);
+    return m.length ? [0, 1, 2].map((d) => m.reduce((s, l) => s + l[d], 0) / m.length) : null;
+  });
+  if (cents.some((c) => !c) || labs.some((l) => !l)) return null;
+  let best = null;
+  for (let i = 0; i < 54; i++) {
+    if (i % 9 === 4) continue;
+    for (let j = i + 1; j < 54; j++) {
+      const a = assign[i], b = assign[j];
+      if (j % 9 === 4 || a === b) continue;
+      const cost = dist(labs[i], cents[b]) + dist(labs[j], cents[a]) - dist(labs[i], cents[a]) - dist(labs[j], cents[b]);
+      if (best && cost >= best.cost) continue;
+      const trial = assign.slice();
+      trial[i] = b;
+      trial[j] = a;
+      if (isValid(trial)) best = { cost, assign: trial, changed: [i, j] };
+    }
+  }
+  return best;
+}

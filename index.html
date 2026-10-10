@@ -21,13 +21,40 @@
     <section id="home">
       <div class="logo" aria-hidden="true"></div>
       <h1>Würfel-Löser</h1>
-      <p class="lead">Fotografiere die sechs Seiten deines 3×3-Würfels. Die App zeigt dir danach Zug für Zug, wie du ihn löst – meist in rund 20 Zügen.</p>
+      <p class="lead">Zwei Fotos von schräg genügen: einmal mit Weiß oben, einmal umgedreht. Die App erkennt den Würfel selbst und zeigt dir Zug für Zug, wie du ihn löst – meist in rund 20 Zügen.</p>
       <div class="stack">
-        <button class="btn primary big" data-go="scan">Würfel scannen</button>
+        <button class="btn primary big" data-go="snap">Würfel fotografieren</button>
+        <button class="btn" data-go="scan">Seite für Seite scannen</button>
         <button class="btn" data-go="manual">Farben von Hand eingeben</button>
         <button class="btn" id="resume" hidden>Letzte Lösung fortsetzen</button>
       </div>
       <p class="small">Läuft komplett auf deinem Gerät, nichts wird hochgeladen. Tipp: zum Home-Bildschirm hinzufügen, dann funktioniert die App auch offline.</p>
+    </section>
+
+    <section id="snap" hidden>
+      <header class="bar">
+        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <span id="snap-title">Foto 1 von 2</span>
+        <span></span>
+      </header>
+      <div class="instr">
+        <div class="iso" id="snap-iso"></div>
+        <p id="snap-text"></p>
+      </div>
+      <div class="viewport tall" id="snap-view">
+        <video id="snap-video" playsinline muted autoplay></video>
+        <img id="snap-photo" alt="" hidden>
+        <canvas id="snap-overlay"></canvas>
+        <p class="status" id="snap-status" hidden></p>
+        <p class="cam-msg" id="snap-msg" hidden></p>
+      </div>
+      <div class="row">
+        <button class="btn" id="snap-redo" hidden>Von vorn</button>
+        <button class="btn primary big" id="snap-shoot">Aufnehmen</button>
+        <label class="btn">Foto<input type="file" accept="image/*" id="snap-file" hidden></label>
+      </div>
+      <div class="thumbs" id="snap-thumbs"></div>
+      <p class="small center">Würfel möglichst bildfüllend, gleichmäßiges Licht, keine Spiegelungen. Statt Live-Kamera gehen auch zwei Fotos aus der Galerie.</p>
     </section>
 
     <section id="scan" hidden>
@@ -65,7 +92,7 @@
       <div class="palette" id="palette"></div>
       <p class="msg" id="review-msg" hidden></p>
       <div class="row">
-        <button class="btn" data-go="scan">Neu scannen</button>
+        <button class="btn" data-go="again">Neu erfassen</button>
         <button class="btn primary big" id="solve-btn">Lösung berechnen</button>
       </div>
     </section>

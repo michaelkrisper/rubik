@@ -32,6 +32,7 @@ export const STICKERS = FACES.flatMap((face) =>
 
 const key = (p, n) => `${p}|${n}`;
 const INDEX = new Map(STICKERS.map((s, i) => [key(s.pos, s.normal), i]));
+export const stickerAt = (pos, normal) => INDEX.get(key(pos, normal)) ?? -1;
 const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
 // Clockwise quarter turn as seen from the tip of axis a (Rodrigues, -90 deg).
@@ -76,11 +77,6 @@ export function applyMoves(state, moves) {
 export function invertMove(m) {
   if (m.endsWith('2')) return m;
   return m.endsWith("'") ? m[0] : m + "'";
-}
-
-export function layerOf(move) {
-  const n = NORMAL[move[0]];
-  return STICKERS.map((s, i) => i).filter((i) => dot(STICKERS[i].pos, n) === 1);
 }
 
 // --- validation (facelets -> cubies), after Kociemba's FaceCube ---

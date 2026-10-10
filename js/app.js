@@ -1,6 +1,7 @@
 import { FACES, SOLVED, validate, findRotationFix, rotateFace, parseMoves, applyMoves, invertMove } from './cube.js';
-import { COLORS, EXPECTED, sampleCells, classify, nearest, nameSeeds, dist } from './color.js';
+import { COLORS, EXPECTED, sampleCells, classify, nearest, nameSeeds, dist, repair } from './color.js';
 import { CubeView } from './view3d.js';
+import { enterSnap, leaveSnap } from './snap.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -38,6 +39,8 @@ const S = {
   names: FACES.map((f) => EXPECTED[f]),
   step: 0,
   single: null,
+  mode: 'snap',
+  auto: [],
   brush: 0,
   start: null,
   moves: [],
@@ -76,9 +79,24 @@ function recolor() {
   S.names = nameSeeds(sd);
 }
 
+// A misread sticker usually drags a second one with it (nine per colour), so
+// an invalid cube is often one swap away from the real one.
+function autoRepair() {
+  S.auto = [];
+  const v = validate(facelets());
+  if (v.ok || ['missing', 'count', 'length'].includes(v.reason)) return;
+  const toStr = (a) => a.map((k) => FACES[k]).join('');
+  const r = repair(S.labs, S.assign, (a) => validate(toStr(a)).ok);
+  if (!r) return;
+  S.assign = r.assign;
+  S.auto = r.changed;
+  r.changed.forEach((i) => (S.locked[i] = S.assign[i]));
+}
+
 function resetCube() {
   S.labs = new Array(54).fill(null);
   S.locked = new Array(54).fill(-1);
+  S.auto = [];
   S.step = 0;
   S.single = null;
   recolor();
@@ -89,12 +107,14 @@ function resetCube() {
 function show(id) {
   for (const s of document.querySelectorAll('main > section')) s.hidden = s.id !== id;
   if (id !== 'scan') stopCamera();
+  if (id !== 'snap') leaveSnap();
   if (id !== 'solve') {
     stopPlay();
     releaseWakeLock();
   }
   if (id === 'home') $('resume').hidden = !S.moves.length && !S.start;
   if (id === 'scan') enterScan();
+  if (id === 'snap') enterSnap(snapDone);
   if (id === 'review') renderReview();
   if (id === 'solve') {
     renderSolve();
@@ -104,17 +124,31 @@ function show(id) {
 }
 
 document.addEventListener('click', (e) => {
-  const go = e.target.closest('[data-go]')?.dataset.go;
+  let go = e.target.closest('[data-go]')?.dataset.go;
   if (!go) return;
-  if (go === 'scan') {
+  if (go === 'again') go = S.mode;
+  if (go === 'scan' || go === 'snap') {
     resetCube();
     photo.hidden = true;
-    show('scan');
+    S.mode = go;
+    show(go);
   } else if (go === 'manual') {
+    S.mode = 'snap';
     resetCube();
     show('review');
   } else show(go);
 });
+
+function snapDone(labs) {
+  S.labs = labs;
+  S.locked = new Array(54).fill(-1);
+  S.start = null;
+  S.moves = [];
+  recolor();
+  autoRepair();
+  save();
+  show('review');
+}
 
 $('resume').addEventListener('click', () => show(S.start ? 'solve' : 'review'));
 
@@ -328,6 +362,7 @@ $('shoot').addEventListener('click', () => {
     grid.classList.remove('flash');
     if (S.single || S.step === 5) {
       S.single = null;
+      if (S.labs.every(Boolean)) autoRepair();
       show('review');
       return;
     }
@@ -372,6 +407,7 @@ function renderReview(highlight = []) {
       if (i === 4) b.classList.add('center');
       if (S.locked[idx] >= 0) b.classList.add('locked');
       if (highlight.includes(idx)) b.classList.add('bad');
+      if (S.auto.includes(idx)) b.classList.add('auto');
       face.append(b);
     }
     const label = document.createElement('button');
@@ -388,7 +424,9 @@ function renderReview(highlight = []) {
   if (v.ok) {
     msg.hidden = false;
     msg.className = 'msg ok';
-    msg.textContent = 'Alles stimmig – bereit zum Lösen.';
+    msg.textContent = S.auto.length
+      ? 'Zwei Felder (gestrichelt) wurden automatisch getauscht, damit der Würfel aufgeht – kurz mit deinem Würfel vergleichen.'
+      : 'Alles stimmig – kurz mit deinem Würfel vergleichen, dann lösen.';
   } else if (v.reason === 'missing' && v.facelets.length === 48) {
     msg.hidden = true;
   } else {
@@ -425,6 +463,7 @@ $('net').addEventListener('click', (e) => {
   const i = Number(b.dataset.i);
   S.assign[i] = S.brush;
   S.locked[i] = S.brush;
+  S.auto = S.auto.filter((a) => a !== i);
   S.start = null;
   S.moves = [];
   save();

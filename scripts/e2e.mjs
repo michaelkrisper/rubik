@@ -1,7 +1,11 @@
 /**
- * End-to-end check in headless Chrome: scrambles a cube, renders a synthetic
- * photo of every face, feeds them through the photo picker, solves, and checks
- * that the solution really solves the scrambled state. Saves screenshots.
+ * End-to-end check in headless Chrome, both capture modes:
+ * - two-photo mode: a rendered corner view of a scrambled cube is the fake
+ *   camera (must trigger the automatic capture), the second view goes through
+ *   the photo picker; the recognised cube must equal the scramble.
+ * - face-by-face mode: a synthetic photo of every face through the picker,
+ *   then solve and check that the solution really solves the scramble.
+ * Saves screenshots.
  *
  *   python3 -m http.server 8791 &   # from the repo root
  *   node scripts/e2e.mjs [http://localhost:8791/] [outdir]
@@ -10,6 +14,7 @@ import { spawn } from 'node:child_process';
 import { mkdtempSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { scenario } from '../test/render.js';
 
 const base = process.argv[2] ?? 'http://localhost:8791/';
 const out = process.argv[3] ?? join(tmpdir(), 'rubik-shots');
@@ -17,9 +22,53 @@ mkdirSync(out, { recursive: true });
 const port = 9334;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Camera frames for Chrome's fake device (YUV 4:2:0, full-range BT.601).
+function y4m({ width: W, height: H, data }) {
+  const y = Buffer.alloc(W * H), u = Buffer.alloc((W / 2) * (H / 2)), v = Buffer.alloc((W / 2) * (H / 2));
+  for (let j = 0; j < H; j++) {
+    for (let i = 0; i < W; i++) {
+      const k = (j * W + i) * 4, r = data[k], g = data[k + 1], b = data[k + 2];
+      y[j * W + i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+      if (i % 2 === 0 && j % 2 === 0) {
+        const c = (j / 2) * (W / 2) + i / 2;
+        u[c] = Math.max(0, Math.min(255, Math.round(128 - 0.168736 * r - 0.331264 * g + 0.5 * b)));
+        v[c] = Math.max(0, Math.min(255, Math.round(128 + 0.5 * r - 0.418688 * g - 0.081312 * b)));
+      }
+    }
+  }
+  return Buffer.concat([Buffer.from(`YUV4MPEG2 W${W} H${H} F30:1 Ip A1:1 C420jpeg\nFRAME\n`), y, u, v]);
+}
+
+// 24-bit BMP, which every browser decodes.
+function bmp({ width: W, height: H, data }) {
+  const row = Math.ceil((W * 3) / 4) * 4;
+  const buf = Buffer.alloc(54 + row * H);
+  buf.write('BM');
+  buf.writeUInt32LE(buf.length, 2);
+  buf.writeUInt32LE(54, 10);
+  buf.writeUInt32LE(40, 14);
+  buf.writeInt32LE(W, 18);
+  buf.writeInt32LE(-H, 22);
+  buf.writeUInt16LE(1, 26);
+  buf.writeUInt16LE(24, 28);
+  for (let j = 0; j < H; j++) {
+    for (let i = 0; i < W; i++) {
+      const k = (j * W + i) * 4, o = 54 + j * row + i * 3;
+      buf[o] = data[k + 2]; buf[o + 1] = data[k + 1]; buf[o + 2] = data[k];
+    }
+  }
+  return buf;
+}
+
+const snapCase = scenario(4242, { W: 1280, H: 720, scale: [0.9, 1.1] });
+const camFile = join(out, 'camera.y4m');
+writeFileSync(camFile, y4m(snapCase.imgs[0]));
+const photo2 = bmp(snapCase.imgs[1]).toString('base64');
+
 const chrome = spawn('google-chrome', [
   '--headless=new', '--no-sandbox', '--disable-gpu',
   '--use-fake-ui-for-media-stream', '--use-fake-device-for-media-stream',
+  `--use-file-for-fake-video-capture=${camFile}`,
   `--remote-debugging-port=${port}`,
   `--user-data-dir=${mkdtempSync(join(tmpdir(), 'rubik-chrome-'))}`,
   '--window-size=412,915', 'about:blank',
@@ -68,6 +117,40 @@ try {
   await send('Page.navigate', { url: base });
   await wait(1500);
   await shot('1-home');
+
+  // two-photo mode: photo 1 must be taken automatically from the live camera
+  await evaluate(`document.querySelector('[data-go=snap]').click()`);
+  let snapped = false;
+  for (let i = 0; i < 40 && !snapped; i++) {
+    await wait(500);
+    snapped = await evaluate(`document.querySelector('#snap-thumbs .thumb.done') !== null`);
+    if (i === 3) await shot('2a-snap-live');
+  }
+  const liveStatus = await evaluate(`document.getElementById('snap-status').textContent`);
+  console.log('auto capture', snapped, '|', liveStatus);
+  await wait(900);
+  await shot('2b-snap-step2');
+  await evaluate(`(async () => {
+    const bytes = Uint8Array.from(atob('${photo2}'), (c) => c.charCodeAt(0));
+    const dt = new DataTransfer();
+    dt.items.add(new File([bytes], 'p2.bmp', { type: 'image/bmp' }));
+    const input = document.getElementById('snap-file');
+    input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  })()`);
+  for (let i = 0; i < 40; i++) {
+    await wait(500);
+    if (await evaluate(`!document.getElementById('review').hidden`)) break;
+  }
+  await shot('2c-snap-review');
+  const snap = await evaluate(`(() => {
+    const d = JSON.parse(localStorage.getItem('rubik-v1'));
+    return { got: d.assign.map((k) => 'URFDLB'[k]).join(''), msg: document.getElementById('review-msg').textContent };
+  })()`);
+  const snapOk = snap.got === snapCase.state;
+  console.log('snap recognised', snapOk, snap.msg);
+  await evaluate(`document.querySelector('#review [data-go=home]').click()`);
+  await wait(300);
 
   // live camera (Chrome's fake device) must start and feed the preview
   await evaluate(`document.querySelector('[data-go=scan]').click()`);
@@ -180,7 +263,7 @@ try {
   })()`);
   console.log('animation mismatches', animBad);
   console.log('errors', errors);
-  const ok = cam.w > 0 && result.matches && result.solves && !animBad.length && !errors.length;
+  const ok = snapped && snapOk && cam.w > 0 && result.matches && result.solves && !animBad.length && !errors.length;
   console.log(ok ? 'E2E OK' : 'E2E FAILED');
   process.exitCode = ok ? 0 : 1;
 } finally {
