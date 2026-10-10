@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Würfel-Löser</title>
+  <meta name="description" content="Rubik's Cube fotografieren und Schritt für Schritt lösen.">
+  <meta name="theme-color" content="#14161a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Würfel">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <main>
+    <section id="home">
+      <div class="logo" aria-hidden="true"></div>
+      <h1>Würfel-Löser</h1>
+      <p class="lead">Fotografiere die sechs Seiten deines 3×3-Würfels. Die App zeigt dir danach Zug für Zug, wie du ihn löst – meist in rund 20 Zügen.</p>
+      <div class="stack">
+        <button class="btn primary big" data-go="scan">Würfel scannen</button>
+        <button class="btn" data-go="manual">Farben von Hand eingeben</button>
+        <button class="btn" id="resume" hidden>Letzte Lösung fortsetzen</button>
+      </div>
+      <p class="small">Läuft komplett auf deinem Gerät, nichts wird hochgeladen. Tipp: zum Home-Bildschirm hinzufügen, dann funktioniert die App auch offline.</p>
+    </section>
+
+    <section id="scan" hidden>
+      <header class="bar">
+        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <span id="scan-title">Seite 1 von 6</span>
+        <span class="dots" id="scan-dots"></span>
+      </header>
+      <div class="instr">
+        <div class="mini" id="scan-mini"></div>
+        <p id="scan-text"></p>
+      </div>
+      <div class="viewport" id="viewport">
+        <video id="video" playsinline muted autoplay></video>
+        <img id="photo" alt="" hidden>
+        <div class="grid" id="grid"></div>
+        <p class="cam-msg" id="cam-msg" hidden></p>
+      </div>
+      <div class="row">
+        <button class="btn" id="scan-back">Vorige Seite</button>
+        <button class="btn primary big shoot" id="shoot">Aufnehmen</button>
+        <label class="btn">Foto<input type="file" accept="image/*" id="file" hidden></label>
+      </div>
+      <p class="small center">Würfel in das Raster legen, so dass es die Seite genau ausfüllt. Gleichmäßiges Licht, keine Spiegelungen.</p>
+    </section>
+
+    <section id="review" hidden>
+      <header class="bar">
+        <button class="icon" data-go="home" aria-label="Zurück">&#x2039;</button>
+        <span>Farben prüfen</span>
+        <span></span>
+      </header>
+      <p class="small center">Farbe unten wählen, dann falsche Felder antippen.</p>
+      <div class="net" id="net"></div>
+      <div class="palette" id="palette"></div>
+      <p class="msg" id="review-msg" hidden></p>
+      <div class="row">
+        <button class="btn" data-go="scan">Neu scannen</button>
+        <button class="btn primary big" id="solve-btn">Lösung berechnen</button>
+      </div>
+    </section>
+
+    <section id="solve" hidden>
+      <header class="bar">
+        <button class="icon" data-go="review" aria-label="Zurück">&#x2039;</button>
+        <span id="solve-title">Lösung</span>
+        <span></span>
+      </header>
+      <p class="hold" id="hold"></p>
+      <div class="cube3d" id="cube3d"></div>
+      <div class="now">
+        <div class="move" id="now-move"></div>
+        <div class="desc" id="now-desc"></div>
+      </div>
+      <div class="controls">
+        <button class="btn icon-btn" id="first" aria-label="Zum Anfang">&#x23EE;&#xFE0E;</button>
+        <button class="btn icon-btn" id="prev" aria-label="Zug zurück">&#x25C0;&#xFE0E;</button>
+        <button class="btn primary big" id="next">Zug machen</button>
+        <button class="btn icon-btn" id="play" aria-label="Abspielen">&#x25B6;&#xFE0E;</button>
+      </div>
+      <ol class="moves" id="moves"></ol>
+      <details class="notation">
+        <summary>Notation erklärt</summary>
+        <p><b>U</b> oben, <b>D</b> unten, <b>F</b> vorne, <b>B</b> hinten, <b>R</b> rechts, <b>L</b> links.</p>
+        <p>Buchstabe allein: diese Seite eine Vierteldrehung im Uhrzeigersinn – so, wie du sie siehst, wenn du direkt auf diese Seite schaust. <b>'</b> (Strich): gegen den Uhrzeigersinn. <b>2</b>: halbe Drehung.</p>
+        <p>Den Würfel selbst dabei nie umgreifen: die Mittelfarben oben und vorne bleiben die ganze Zeit gleich.</p>
+      </details>
+    </section>
+  </main>
+</body>
+</html>
