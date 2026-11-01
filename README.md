@@ -53,8 +53,8 @@ iPhone, ohne Upload.
 5. **Lösen**: Würfel so halten wie angezeigt (Weiß oben, Grün vorne) und jeden
    Zug nachdrehen.
 
-Statt der Live-Kamera gehen auch zwei Fotos aus der Galerie. Über *Zum
-Startbildschirm hinzufügen* lässt sich die App installieren.
+Statt der Live-Kamera gehen auch zwei Fotos aus der Galerie. Über _Zum
+Startbildschirm hinzufügen_ lässt sich die App installieren.
 
 ### Warum zwei Fotos?
 
@@ -65,16 +65,16 @@ Zustand.
 
 ## Wie es funktioniert
 
-| Datei | Aufgabe |
-|---|---|
-| [`js/detect.js`](js/detect.js) | Würfelerkennung in einem Foto, Zusammenführen zweier Fotos |
-| [`js/snap.js`](js/snap.js) | Kamera-Oberfläche: Live-Erkennung, Auto-Aufnahme, Hinweise |
-| [`js/detect-worker.js`](js/detect-worker.js) | Erkennung im Web Worker |
-| [`js/color.js`](js/color.js) | Farbabtastung, Klassifikation in CIELAB, Reparatur |
-| [`js/cube.js`](js/cube.js) | Facelet-Modell, Züge, Gültigkeitsprüfung |
-| [`js/view3d.js`](js/view3d.js) | 3D-Würfel aus CSS-Transforms, Zug-Animation |
-| [`js/app.js`](js/app.js) | Ablauf, Seiten-Scan, Prüfansicht, Lösungsanzeige |
-| [`worker.js`](worker.js) | Kociemba-Löser ([cubejs](https://github.com/ldez/cubejs), in `vendor/`) |
+| Datei                                        | Aufgabe                                                                 |
+| -------------------------------------------- | ----------------------------------------------------------------------- |
+| [`js/detect.js`](js/detect.js)               | Würfelerkennung in einem Foto, Zusammenführen zweier Fotos              |
+| [`js/snap.js`](js/snap.js)                   | Kamera-Oberfläche: Live-Erkennung, Auto-Aufnahme, Hinweise              |
+| [`js/detect-worker.js`](js/detect-worker.js) | Erkennung im Web Worker                                                 |
+| [`js/color.js`](js/color.js)                 | Farbabtastung, Klassifikation in CIELAB, Reparatur                      |
+| [`js/cube.js`](js/cube.js)                   | Facelet-Modell, Züge, Gültigkeitsprüfung                                |
+| [`js/view3d.js`](js/view3d.js)               | 3D-Würfel aus CSS-Transforms, Zug-Animation                             |
+| [`js/app.js`](js/app.js)                     | Ablauf, Seiten-Scan, Prüfansicht, Lösungsanzeige                        |
+| [`worker.js`](worker.js)                     | Kociemba-Löser ([cubejs](https://github.com/ldez/cubejs), in `vendor/`) |
 
 **Erkennung** (`detectCube`): Kanten nach Sobel plus dunkle Fugen ergeben eine
 Grenzmaske; deren Zusammenhangskomponenten werden als Viereck angenähert
@@ -106,14 +106,14 @@ npm ci
 npm run serve           # http://localhost:8080
 ```
 
-| Befehl | |
-|---|---|
-| `npm run lint` | Biome: Formatierung und Lint |
-| `npm run lint:fix` | dasselbe, mit Korrekturen |
-| `npm test` | Unit-Tests (`node:test`) |
+| Befehl                  |                                                                  |
+| ----------------------- | ---------------------------------------------------------------- |
+| `npm run lint`          | Biome: Formatierung und Lint                                     |
+| `npm run lint:fix`      | dasselbe, mit Korrekturen                                        |
+| `npm test`              | Unit-Tests (`node:test`)                                         |
 | `npm run test:coverage` | Unit-Tests mit Mindestabdeckung für Modell, Farben und Erkennung |
-| `npm run test:e2e` | Ende-zu-Ende im headless Chrome |
-| `npm run check` | Lint und Unit-Tests |
+| `npm run test:e2e`      | Ende-zu-Ende im headless Chrome                                  |
+| `npm run check`         | Lint und Unit-Tests                                              |
 
 ### Tests
 
