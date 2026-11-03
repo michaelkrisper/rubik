@@ -1,0 +1,26 @@
+name: Misdetection
+description: The cube was not found or colours were detected wrongly
+labels: [detection]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks! The two photos help most. Please attach only photos you took
+        yourself; they become public here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: e.g. "stuck at '2 von 3 Seiten erkannt'" or "red and orange swapped"
+    validations:
+      required: true
+  - type: textarea
+    id: photos
+    attributes:
+      label: Photos
+      description: Drag or paste them here (photo 1 with white on top, photo 2 with yellow on top).
+  - type: input
+    id: device
+    attributes:
+      label: Device and browser
+      placeholder: Pixel 9, Chrome 152

@@ -1,7 +1,7 @@
 name: CI
 
-# Prüft jeden Push und Pull Request (Lint, Unit-Tests mit Abdeckung,
-# Browsertest) und veröffentlicht den Stand von main danach auf GitHub Pages.
+# Checks every push and pull request (lint, unit tests with coverage, browser
+# test) and then deploys main to GitHub Pages.
 
 on:
   push:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint und Tests
+    name: Lint and tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -30,9 +30,9 @@ jobs:
       - run: npx biome ci
       - run: npm run test:coverage
 
-      # Ein gerenderter, verwürfelter Würfel als Fake-Kamera (Auto-Aufnahme),
-      # dazu Galerie-Upload, Seiten-Scan, Löser und 3D-Animation.
-      # Chrome ist auf dem Runner vorinstalliert.
+      # A rendered, scrambled cube as fake camera (automatic capture), plus
+      # gallery upload, face-by-face scan, solver and 3D animation.
+      # Chrome is preinstalled on the runner.
       - run: npm run test:e2e -- '' e2e-screenshots
       - uses: actions/upload-artifact@v7
         if: failure()
@@ -56,7 +56,7 @@ jobs:
       url: ${{ steps.pages.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
-      - name: Seite zusammenstellen
+      - name: Assemble site
         run: |
           mkdir _site
           cp -r index.html style.css sw.js worker.js manifest.webmanifest js icons vendor _site/

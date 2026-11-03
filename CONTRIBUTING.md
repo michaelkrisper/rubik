@@ -1,38 +1,36 @@
-# Mitarbeiten
+# Contributing
 
-Fehlerberichte, Fotos mit Fehlerkennungen und Pull Requests sind willkommen.
+Bug reports, photos of misdetections and pull requests are welcome.
 
-## Einrichten
+## Setup
 
-Voraussetzungen: Node.js 24, Google Chrome (für den Browsertest).
+Requirements: Node.js 24, Google Chrome (for the browser test).
 
 ```sh
 npm ci
 npm run serve        # http://localhost:8080
 ```
 
-Es gibt keinen Build-Schritt; die Dateien im Repository sind die App. Die
-Kamera braucht einen sicheren Kontext: `localhost` geht, für ein Handy im WLAN
-braucht es HTTPS.
+There is no build step; the files in the repository are the app. The camera
+needs a secure context: `localhost` works, a phone on the local network needs
+HTTPS.
 
-## Vor dem Pull Request
+## Before opening a pull request
 
 ```sh
-npm run lint:fix        # Biome: formatieren und linten
-npm run test:coverage   # Unit-Tests mit Mindestabdeckung
-npm run test:e2e        # Ende-zu-Ende im headless Chrome
+npm run lint:fix        # Biome: format and lint
+npm run test:coverage   # unit tests with minimum coverage
+npm run test:e2e        # end-to-end in headless Chrome
 ```
 
-Die CI führt dieselben Schritte aus.
+CI runs the same steps.
 
-## Hinweise
+## Notes
 
-- Änderungen an der Erkennung (`js/detect.js`) an vielen gerenderten Würfeln
-  prüfen, nicht nur an einem: `scenario()` in `test/render.js` liefert beliebig
-  viele Fälle. Eine falsche Erkennung ist schlimmer als „nicht erkannt“;
-  im Zweifel lieber verwerfen.
-- Neue Dateien der App auch in `SHELL` in `sw.js` eintragen und im
-  Deploy-Schritt der CI mitkopieren.
-- Keine Fotos fremder Urheber ins Repo.
-- Commit-Nachrichten auf Deutsch; Code und Kommentare auf Englisch, Kommentare
-  erklären das Warum, nicht das Was.
+- Check changes to detection (`js/detect.js`) against many rendered cubes, not
+  just one: `scenario()` in `test/render.js` produces any number of cases. A
+  wrong detection is worse than "not detected"; when in doubt, reject.
+- Add new app files to `SHELL` in `sw.js` and to the deploy step in CI.
+- No photos by third parties in the repository.
+- Code, comments and commit messages in English; the user interface stays
+  German. Comments explain the why, not the what.
