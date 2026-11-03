@@ -146,12 +146,14 @@ async function shot(name) {
 
 try {
   let target;
-  for (let i = 0; i < 50 && !target; i++) {
+  // A cold Chrome start on a shared CI runner occasionally takes over 10 s.
+  for (let i = 0; i < 150 && !target; i++) {
     await wait(200);
     target = await fetch(`http://127.0.0.1:${port}/json/new?about:blank`, { method: 'PUT' })
       .then((r) => r.json())
       .catch(() => null);
   }
+  if (!target) throw new Error(`Chrome did not open its DevTools port ${port} within 30 s`);
   ws = new WebSocket(target.webSocketDebuggerUrl);
   await new Promise((r) => ws.addEventListener('open', r));
   ws.addEventListener('message', (e) => {
