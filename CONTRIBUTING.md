@@ -4,7 +4,7 @@ Bug reports, photos of misdetections and pull requests are welcome.
 
 ## Setup
 
-Requirements: Node.js 24, Google Chrome (for the browser test).
+Requirements: Node.js 24 or newer (CI: `.nvmrc`), Google Chrome (for the browser test).
 
 ```sh
 npm ci

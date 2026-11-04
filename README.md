@@ -3,6 +3,7 @@
 [![CI](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml/badge.svg)](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-michaelkrisper.github.io%2Frubik-2ea44f)](https://michaelkrisper.github.io/rubik/)
+[![Node.js](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)](.nvmrc)
 [![Biome](https://img.shields.io/badge/code%20style-Biome-60a5fa?logo=biome&logoColor=white)](https://biomejs.dev)
 
 Photograph a scrambled 3x3x3 Rubik's Cube with your phone and solve it move by
@@ -96,7 +97,8 @@ than fixed thresholds.
 
 ## Development
 
-Requirements: Node.js 24 and Google Chrome for the browser test. There is no
+Requirements: Node.js 24 or newer (CI uses the version in
+[`.nvmrc`](.nvmrc)) and Google Chrome for the browser test. There is no
 build step; the files in the repository are the app.
 
 ```sh
