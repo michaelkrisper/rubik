@@ -1,6 +1,7 @@
 # Rubik's Cube Solver
 
 [![CI](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml/badge.svg)](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml)
+[![Version](https://img.shields.io/github/v/tag/michaelkrisper/rubik?sort=semver&label=version)](https://github.com/michaelkrisper/rubik/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Live demo](https://img.shields.io/badge/demo-michaelkrisper.github.io%2Frubik-2ea44f)](https://michaelkrisper.github.io/rubik/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)](.nvmrc)
@@ -134,6 +135,9 @@ npm run serve           # http://localhost:8080
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of this on
 every push and pull request and deploys `main` to GitHub Pages only after
 everything passed.
+Every merge to `main` is tagged with the next patch version; bundled releases
+with release notes come from the Release workflow (see
+[CONTRIBUTING](CONTRIBUTING.md#versions-and-releases)).
 
 ## Limitations
 
