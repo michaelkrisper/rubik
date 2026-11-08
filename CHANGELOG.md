@@ -1,5 +1,8 @@
 # Changelog
 
+Changes after 1.0.0 are listed in the
+[GitHub releases](https://github.com/michaelkrisper/rubik/releases).
+
 ## 1.0.0 - 2026-10-10
 
 - Detection from two angled photos: perspective, live camera with automatic
