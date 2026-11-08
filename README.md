@@ -147,6 +147,11 @@ with release notes come from the Release workflow (see
 - Faces photographed at a very flat angle, strong reflections and cubes that
   fill only a small part of the frame are rejected.
 
+## Contributing
+
+Issues and pull requests are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md) for
+the workflow, versions and releases.
+
 ## License
 
 [MIT](LICENSE). The solver comes from [cubejs](https://github.com/ldez/cubejs),
