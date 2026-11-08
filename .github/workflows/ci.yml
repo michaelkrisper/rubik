@@ -42,8 +42,9 @@ jobs:
 
   deploy:
     name: GitHub Pages
-    needs: check
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Only commits that got a version tag: a re-run of an older run deploys nothing.
+    needs: [check, version]
+    if: needs.version.outputs.version != ''
     runs-on: ubuntu-latest
     permissions:
       pages: write
