@@ -8,6 +8,7 @@ const SHELL = [
   'manifest.webmanifest',
   'worker.js',
   'js/app.js',
+  'js/version.js',
   'js/cube.js',
   'js/color.js',
   'js/view3d.js',
