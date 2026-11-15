@@ -49,6 +49,8 @@ facelet string -> `worker.js` (cubejs) solves -> `js/view3d.js` animates.
   colour cast, noise, distractors). `scenario(seed, opts)` is the test-case generator
   for detection, unit tests and E2E.
 - `sw.js`: network-first service worker; serves the `SHELL` list offline.
+- `js/version.js` (`VERSION`, last line of the start screen) holds `dev`; the deploy's
+  "Assemble site" step writes the release tag into it.
 
 ## Conventions
 

@@ -11,6 +11,7 @@ import {
 import { COLORS, EXPECTED, sampleCells, classify, nearest, nameSeeds, dist, repair } from './color.js';
 import { CubeView } from './view3d.js';
 import { enterSnap, leaveSnap } from './snap.js';
+import { VERSION } from './version.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -746,5 +747,6 @@ document.addEventListener('visibilitychange', () => {
 load();
 if (S.assign[4] < 0) recolor();
 show('home');
+$('version').textContent = `Version ${VERSION}`;
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

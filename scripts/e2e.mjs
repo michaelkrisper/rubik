@@ -182,6 +182,9 @@ try {
   await send('Page.navigate', { url: base });
   await wait(1500);
   await shot('1-home');
+  // The repository holds the placeholder; the deploy writes the release tag.
+  const version = await evaluate(`document.getElementById('version').textContent`);
+  console.log('version line', version);
 
   // two-photo mode: photo 1 must be taken automatically from the live camera
   await evaluate(`document.querySelector('[data-go=snap]').click()`);
@@ -339,7 +342,14 @@ try {
   console.log('animation mismatches', animBad);
   console.log('errors', errors);
   const ok =
-    snapped && snapOk && cam.w > 0 && result.matches && result.solves && !animBad.length && !errors.length;
+    version === 'Version dev' &&
+    snapped &&
+    snapOk &&
+    cam.w > 0 &&
+    result.matches &&
+    result.solves &&
+    !animBad.length &&
+    !errors.length;
   console.log(ok ? 'E2E OK' : 'E2E FAILED');
   process.exitCode = ok ? 0 : 1;
 } finally {
