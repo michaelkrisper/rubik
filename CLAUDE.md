@@ -4,8 +4,8 @@ Rubik's Cube solver as an installable web app: two angled photos of a scrambled
 3x3x3 cube -> perspective detection -> Kociemba solution (at most 22 moves) ->
 move-by-move guide on an animated 3D cube. Vanilla JS ES modules, no framework,
 no bundler, no build step: the files in the repository are the app. Everything
-runs in the browser; CI deploys `main` to GitHub Pages
-(https://michaelkrisper.github.io/rubik/).
+runs in the browser; CI deploys `main` to the own server
+(https://rubik.krisperapps.de/).
 
 ## Commands
 
@@ -84,6 +84,5 @@ facelet string -> `worker.js` (cubejs) solves -> `js/view3d.js` animates.
 - PRs auto-merge (squash) once CI and the "Linked ticket" check pass; drafts are not merged.
 - Versions exist only as git tags `vX.Y.Z`. Every merge to `main` tags the next patch;
   never edit version numbers in files. Minor/major releases: Actions -> Release.
-- Merging to `main` deploys to GitHub Pages and to
-  https://rubik.krisperapps.de/ automatically.
+- Merging to `main` deploys to https://rubik.krisperapps.de/ automatically.
 - Details: CONTRIBUTING.md.
