@@ -67,6 +67,9 @@ h1 {
 .center {
   text-align: center;
 }
+.legal a {
+  color: inherit;
+}
 .stack {
   display: flex;
   flex-direction: column;
