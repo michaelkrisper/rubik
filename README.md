@@ -3,7 +3,7 @@
 [![CI](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml/badge.svg)](https://github.com/michaelkrisper/rubik/actions/workflows/ci.yml)
 [![Version](https://img.shields.io/github/v/tag/michaelkrisper/rubik?sort=semver&label=version)](https://github.com/michaelkrisper/rubik/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Live demo](https://img.shields.io/badge/demo-michaelkrisper.github.io%2Frubik-2ea44f)](https://michaelkrisper.github.io/rubik/)
+[![Live demo](https://img.shields.io/badge/demo-rubik.krisperapps.de-2ea44f)](https://rubik.krisperapps.de/)
 [![Node.js](https://img.shields.io/badge/node-%3E%3D24-339933?logo=node.js&logoColor=white)](.nvmrc)
 [![Biome](https://img.shields.io/badge/code%20style-Biome-60a5fa?logo=biome&logoColor=white)](https://biomejs.dev)
 
@@ -12,7 +12,7 @@ move. Two angled photos are enough: the app finds the cube in perspective,
 computes a solution of at most 22 moves and shows every move on an animated 3D
 cube. Runs entirely in the browser on Android and iPhone, nothing is uploaded.
 
-**Live demo: [michaelkrisper.github.io/rubik](https://michaelkrisper.github.io/rubik/)**
+**Live demo: [rubik.krisperapps.de](https://rubik.krisperapps.de/)**
 
 The user interface is in German.
 
@@ -133,7 +133,7 @@ npm run serve           # http://localhost:8080
   against the model. Screenshots go to `$TMPDIR/rubik-shots`.
 
 CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all of this on
-every push and pull request and deploys `main` to GitHub Pages only after
+every push and pull request and deploys `main` to rubik.krisperapps.de only after
 everything passed.
 Every merge to `main` is tagged with the next patch version; bundled releases
 with release notes come from the Release workflow (see

@@ -2,7 +2,7 @@
   "name": "rubik",
   "version": "1.0.0",
   "description": "Photograph a Rubik's Cube and solve it move by move: detection from two photos, Kociemba solver, 3D guide, installable web app",
-  "homepage": "https://michaelkrisper.github.io/rubik/",
+  "homepage": "https://rubik.krisperapps.de/",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/michaelkrisper/rubik.git"
