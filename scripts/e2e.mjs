@@ -342,7 +342,7 @@ try {
   console.log('animation mismatches', animBad);
   console.log('errors', errors);
   const ok =
-    version === 'Version dev' &&
+    version === 'dev' &&
     snapped &&
     snapOk &&
     cam.w > 0 &&

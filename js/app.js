@@ -747,6 +747,6 @@ document.addEventListener('visibilitychange', () => {
 load();
 if (S.assign[4] < 0) recolor();
 show('home');
-$('version').textContent = `Version ${VERSION}`;
+$('version').textContent = VERSION === 'dev' ? 'dev' : `v${VERSION}`;
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
