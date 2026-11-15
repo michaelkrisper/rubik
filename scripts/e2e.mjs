@@ -185,6 +185,10 @@ try {
   // The repository holds the placeholder; the deploy writes the release tag.
   const version = await evaluate(`document.getElementById('version').textContent`);
   console.log('version line', version);
+  const legal = await evaluate(
+    `[...document.querySelectorAll('#home .legal a')].map((a) => a.href).join(' ')`,
+  );
+  console.log('legal links', legal);
 
   // two-photo mode: photo 1 must be taken automatically from the live camera
   await evaluate(`document.querySelector('[data-go=snap]').click()`);
@@ -343,6 +347,8 @@ try {
   console.log('errors', errors);
   const ok =
     version === 'dev' &&
+    legal ===
+      'https://krisperapps.de/impressum https://krisperapps.de/datenschutz#rubik https://krisperapps.de/nutzung' &&
     snapped &&
     snapOk &&
     cam.w > 0 &&
